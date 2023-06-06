@@ -1,0 +1,264 @@
+```{r i_5x, fig.align='center', echo=FALSE, cache=TRUE}
+
+knitr::include_graphics("imag/06_Mapas.png")
+
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+<div class=text-justify>
+<br/>
+
+## **6.1 Producción de Miel y Apicultores en México (Sector Primario)**
+****
+
+<br>
+
+### **6.1.1 Producción de miel por Entidad Federativa**
+
+En el siguiente mapa se muestra la producción en toneladas de miel de 2019, por entidad federativa.
+
+<br/>
+
+```{r mapaleaflet1, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, cache =TRUE, out.width = "100%"}
+
+knitr::opts_chunk$set(echo=FALSE, message = FALSE, warning = FALSE)
+
+library(sp)
+library(rgdal)
+library(leaflet)
+library(leaflet.extras)
+library(mapview)  
+
+
+
+prod_miel <- readOGR("geodata", "ent_a", verbose=FALSE, encoding = "utf8")
+prodmiel2019 <- read.csv("tabs/prodmiel2019.csv", head= T)
+prod_miel$total2019 <- prodmiel2019[,3]
+map_prod_miel <- leaflet(data=prod_miel)
+#clust <- kmeans(prod_miel$total2019,5)
+#breaks <- sort(c(0, max((prod_miel$total2018)[clust$cluster == 1]),
+#                 max((prod_miel$total2018)[clust$cluster == 2]),
+#                 max((prod_miel$total2018)[clust$cluster == 3]),
+#                 max((prod_miel$total2018)[clust$cluster == 4]),
+#                max((prod_miel$total2018)[clust$cluster == 5])))
+#breaks2 <- c((round(breaks[-6],1)),(ceiling(breaks[6])))
+breaks2 <- c(77,600,1400,3200,6000,9810)
+binpal <- colorBin("Oranges", prod_miel$total2019, breaks2)
+
+map_prod_miel %>%
+  setView(lng = -102.43, lat = 22.37, zoom = 5.4) %>%
+  addTiles() %>% addFullscreenControl() %>%
+  addPolygons(
+    stroke = FALSE,
+    fillOpacity = 0.7,
+    smoothFactor = 0.1,
+    color = ~binpal(total2019),
+    popup = paste0("<strong>CVE_ENT: </strong>", prod_miel$CVE_ENT, "</br>",
+                   "<strong>ENTIDAD: </strong>", prod_miel$NOMGEO, "</br>",
+                   "<strong>PRODUCCIÓN: </strong>", prod_miel$total2019)
+  ) %>%
+  addLegend(
+    "bottomleft", pal = binpal, values = ~total2019,
+    title = "Producción de Miel <br/> (Toneladas)",
+    opacity = 0.7
+  )
+
+```
+
+<p align="center"> **Mapa 6.1. Producción de miel por Entidad Federativa, 2019.** </p>
+
+<center>
+***Fuente: SADER***
+</center>
+
+[*Descargar datos*](tabs/prodmiel2019.csv)
+
+<br/>
+<br/>
+<br/>
+
+### **6.1.2 Número de Colmenas**
+
+Si se analiza el dato de colmenas por entidad federativa, se nota el predominio de los estados de la península de Yucatán y el sureste del país. Los datos disponibles son de 2017.
+
+```{r map_colm, echo = FALSE, message = FALSE, fig.height=6, warning = FALSE, out.width = "100%", cache=TRUE}
+
+knitr::opts_chunk$set(echo=FALSE, message = FALSE, warning = FALSE)
+
+library(sp)
+library(rgdal)
+library(leaflet)
+library(leaflet.extras)
+library(mapview)  
+
+mapa_base <- readOGR("geodata", "ent_a", verbose=FALSE, encoding = "utf8")
+colm_ent <- read.csv("tabs/colmenas.csv")
+mapa_base$colmenas <- colm_ent[,2]
+map_colm <- leaflet(data=mapa_base)
+clust2 <- kmeans(mapa_base$colmenas,5)
+#breaks3 <- sort(c(1, max((mapa_base$colmenas)[clust2$cluster == 1]),
+#                 max((mapa_base$colmenas)[clust2$cluster == 2]),
+#                 max((mapa_base$colmenas)[clust2$cluster == 3]),
+#                 max((mapa_base$colmenas)[clust2$cluster == 4]),
+#                 max((mapa_base$colmenas)[clust2$cluster == 5])))
+#breaks4 <- c((round(breaks3[-6],1)),(ceiling(breaks3[6])))
+breaks4 <- c(1,19000,44000,91000,161000,251000)
+binpal2 <- colorBin("Blues", mapa_base$colmenas, breaks4)
+
+map_colm %>%
+  setView(lng = -102.43, lat = 22.37, zoom = 5.4) %>%
+  addTiles() %>% addFullscreenControl() %>%
+  addPolygons(
+    stroke = FALSE,
+    fillOpacity = 0.7,
+    smoothFactor = 0.1,
+    color = ~binpal2(colmenas),
+    popup = paste0("<strong>CVE_ENT: </strong>", mapa_base$CVE_ENT, "</br>",
+                   "<strong>ENTIDAD: </strong>", mapa_base$NOMGEO, "</br>",
+                   "<strong>NÚMERO DE COLMENAS: </strong>", mapa_base$colmenas)
+  ) %>%
+ addLegend("bottomleft", pal = binpal2, values = ~colmenas,
+    title = "Número de Colmenas",
+    opacity = 0.7
+  )
+
+
+
+```
+
+<p align="center"> **Mapa 6.2. Número de Colmenas por Entidad Federativa, 2017.** </p>
+
+<center>
+***Fuente: [SADER. (2018). Datos abiertos.](https://datos.gob.mx/busca/dataset/produccion-de-miel-2017){target="_blank"}***
+</center>
+
+<br/>
+
+[*Descargar datos*](tabs/colmenas.csv) 
+<br/>
+<br/>
+<br/>
+
+### **6.1.3 Apicultores**
+
+Según datos del *Sistema de Información Agroalimentaria de Consulta (SIACON)* de la Secretaría de Agricultura y Desarrollo Rural (AGRICULTURA), en el país se registró en 2017 un total de 43,478 apicultores, distribuidos en todos los estados según el siguiente mapa.
+
+```{r map_apic, echo = FALSE, message = FALSE, fig.height=6, warning = FALSE, out.width = "100%", cache=TRUE}
+
+knitr::opts_chunk$set(echo=FALSE, message = FALSE, warning = FALSE)
+
+library(sp)
+library(rgdal)
+library(leaflet)
+library(leaflet.extras)
+library(mapview)  
+
+mapa_base2 <- readOGR("geodata", "ent_a", verbose=FALSE, encoding = "utf8")
+apic_ent <- read.csv("tabs/estadisticas.csv")
+mapa_base2$apicult <- apic_ent[,2]
+map_apicult <- leaflet(data=mapa_base2)
+clust3 <- kmeans(mapa_base2$apicult,5)
+#breaks5 <- sort(c(1, max((mapa_base2$apicult)[clust3$cluster == 1]),
+#                 max((mapa_base2$apicult)[clust3$cluster == 2]),
+#                 max((mapa_base2$apicult)[clust3$cluster == 3]),
+#                 max((mapa_base2$apicult)[clust3$cluster == 4]),
+#                 max((mapa_base2$apicult)[clust3$cluster == 5])))
+#breaks6 <- c((round(breaks5[-6],1)),(ceiling(breaks5[6])))
+breaks6 <- c(1,290,560,1350,6800,10500)
+binpal3 <- colorBin("Purples", mapa_base2$apicult, breaks6)
+
+map_apicult %>%
+  setView(lng = -102.43, lat = 22.37, zoom = 5.4) %>%
+  addTiles() %>% addFullscreenControl() %>%
+  addPolygons(
+    stroke = FALSE,
+    fillOpacity = 0.7,
+    smoothFactor = 0.1,
+    color = ~binpal3(apicult),
+    popup = paste0("<strong>CVE_ENT: </strong>", mapa_base2$CVE_ENT, "</br>",
+                   "<strong>ENTIDAD: </strong>", mapa_base2$NOMGEO, "</br>",
+                   "<strong>NÚMERO DE APICULTORES: </strong>", mapa_base2$apicult)
+  ) %>%
+  addLegend(
+    "bottomleft", pal = binpal3, values = ~apicult,
+    title = "Número de Apicultores",
+    opacity = 0.7
+  )
+
+
+```
+
+<p align="center"> **Mapa 6.3. Número de Apicultores por Entidad Federativa, 2017.** </p>
+
+<center>
+***Fuente: [SIAP. Datos Abiertos.](https://datos.gob.mx/busca/dataset/produccion-de-miel-2017){target="_blank"}***
+</center>
+
+<br/>
+
+[*Descargar datos*](tabs/estadisticas.csv)
+
+<br/>
+<br/>
+<br/>
+
+
+## **6.2 Unidades Económicas de Venta de Miel, Fabricación de Insumos y Otros Servicios Relacionados con la Apicultura en México (Sectores Secundario y Terciario)**
+****
+
+<br/>
+
+**El siguiente mapa es un primer acercamiento hacia la construcción de un Directorio Nacional de Apicultores y Comercializadores de Miel y sus Derivados.** Contiene información georreferenciada de las unidades económicas que comercializan miel, prestan algun servicio relacionado con la apicultura o producen insumos para dicha actividad, y que se encuentran registradas en el *Directorio Estadístico Nacional de Unidades Económicas (DENUE)* del INEGI.
+
+<br/>
+
+```{r mapaleaflet2, echo=FALSE, message=FALSE, warning=FALSE, fig.height=6, cache =TRUE, out.width = "100%"}
+library(sp)
+library(rgdal)
+library(leaflet)
+library(htmltools)
+library(htmlwidgets)
+library(leaflet.extras)
+library(mapview)  
+library(raster)
+library(bitops)
+library(rjson)
+library(xts)
+
+
+puntos <- read.csv("denue2020/INEGI_DENUE_27042020_2.csv", header = T, encoding = "utf8")
+crs_4326 <- CRS('+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs')
+puntos_sp <- SpatialPointsDataFrame(puntos[,c(40,39)],puntos[,-c(40,39)], proj4string = crs_4326)
+writeOGR(puntos_sp, "shape_files", "puntos", driver="ESRI Shapefile", encoding = 'utf8',
+         overwrite_layer=T)
+puntos_sp2 <- readOGR("shape_files/puntos.shp", encoding = 'utf8',
+                      "puntos", verbose=FALSE)
+puntos_sp2@data$lat <- puntos$lat
+puntos_sp2@data$lon <- puntos$lon
+
+m <- leaflet() %>% addTiles() %>% addFullscreenControl()
+m %>% setView(lng = -102.43, lat = 22.37, zoom = 5.4)  %>%
+  addMarkers(data=puntos_sp2, 
+             clusterOptions = markerClusterOptions(removeOutsideVisibleBounds = T),
+             popup = paste0( "<strong>ID: </strong>", puntos$id, "</br>",
+                             "<strong>MUNICIPIO: </strong>", paste(puntos$mun, puntos$ent,sep = ", "), "</br>",
+                             "<strong>ESTABLECIMIENTO: </strong>", puntos$nomb_ue, "</br>",
+                             "<strong>TIPO DE ESTABLECIMIENTO: </strong>", paste(puntos$cod_scian, puntos$nom_activ,sep = ", "), "</br>"))
+
+```
+
+<p align="center"> **Mapa 6.4. Unidades Económicas de Venta de Miel, Fabricación de Insumos y Otros Servicios Relacionados con la Apicultura en México, DENUE 2020.** </p>
+
+<br/>
+
+[*Descargar datos*](denue2020/INEGI_DENUE_27042020_2.csv)
+
+<br/>
+
+
+</div>
+
